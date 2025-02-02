@@ -7,6 +7,7 @@ function App() {
   const [playerTurn, setPlayerTurn] = useState(1);
   // create a 2d array to map through and create our divs.
   const [board, setBoard] = useState(Array(3).fill("").map(() => Array(3).fill("")));
+  const [difficulty, setDifficulty] = useState("Hard")
   const [inGame, setInGame] = useState(false)
 
   // set our players markers.
@@ -27,12 +28,14 @@ function App() {
 
     setPlayerTurn(2)
 }  
-useEffect(()=>{
-  if(playerTurn == 2){
-    botTurn();
-  } else return 
-}, [playerTurn])
 
+// useEffect(()=>{
+//   if(playerTurn == 2){
+//     botTurn();
+//   } else return 
+// }, [playerTurn])
+
+// create a set of winning patters to avoid checking redundent spaces
 const WINNING_PATTERNS = [
   [[0, 0], [0, 1], [0, 2]],
   [[1, 0], [1, 1], [1, 2]],
@@ -59,27 +62,72 @@ const checkWinner = (board: string[][]): string | null => {
   return board.flat().includes("") ? null : "tie"; 
 };
 
-const botTurn = useCallback(() => {
-  
-  let bestScore = -Infinity;
-  let bestMove = { row: -1, col: -1 };
-
-  // Finding the best move
-  for (let i = 0; i < 3; i++) {
-    for (let j = 0; j < 3; j++) {
-      if (!board[i][j]) {
-        const tempBoard = board.map((r) => [...r]);
-        tempBoard[i][j] = bot
-        const score = minimax(tempBoard, 0, false);
-        if (score > bestScore) {
-          bestScore = score;
-          bestMove = { row: i, col: j };
-        }
+function easyMove() {
+  const emptySpaces = []
+  for(let i =0; i < 3; i++){
+    for(let j = 0; j < 3; j++){
+      if(!board[i][j]){
+        emptySpaces.push({row: i, col: j})
       }
     }
   }
+  const ranIdx = Math.floor(Math.random() * emptySpaces.length)
+  return {row: emptySpaces[ranIdx].row, col: emptySpaces[ranIdx].col}
+}
 
-  // Update board if AI finds a move
+const botTurn = useCallback(() => {
+  let bestMove = { row: -1, col: -1 };
+
+
+  // easy difficulty
+  // create a temp array of all possible spaces, pick one randomly
+  if(difficulty === "easy") {
+    // console.log("easy AI")
+    bestMove = easyMove()
+
+  } else if (difficulty === "medium") {
+    if(Math.round(Math.random() * 0.5) >= 0.5){
+      console.log("hard")
+    } else {
+      console.log("easy")
+    }
+    let bestScore = -Infinity;
+  
+    // Finding the best move
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        if (!board[i][j]) {
+          const tempBoard = board.map((r) => [...r]);
+          tempBoard[i][j] = bot
+          const score = minimax(tempBoard, 0, false);
+          if (score > bestScore) {
+            bestScore = score;
+            bestMove = { row: i, col: j };
+          }
+        }
+      }
+    }
+  } else {
+
+    // "Hard" difficulty, always choose best move.
+    let bestScore = -Infinity;
+  
+    // Finding the best move
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        if (!board[i][j]) {
+          const tempBoard = board.map((r) => [...r]);
+          tempBoard[i][j] = bot
+          const score = minimax(tempBoard, 0, false);
+          if (score > bestScore) {
+            bestScore = score;
+            bestMove = { row: i, col: j };
+          }
+        }
+      }
+    }
+  
+  }
   if (bestMove.row !== -1 && bestMove.col !== -1) {
     setBoard((prevBoard) => {
       const newBoard = prevBoard.map((r) => [...r]);
@@ -87,10 +135,12 @@ const botTurn = useCallback(() => {
       return newBoard;
     });
 
-    setPlayerTurn(1);
-    setInGame(true);
   }
-}, [board]);
+  setPlayerTurn(1);
+  setInGame(true);
+  
+
+}, [board, difficulty]);
 
 const scores: Record<string, number> = { [player]: -1, [bot]: 1, tie: 0 };
 
@@ -118,10 +168,10 @@ useEffect(() => {
   if (result && displayWinner.current) {
     displayWinner.current.innerHTML = result === "tie" ? "It's a Tie!" : `${result} Wins!`;
     setInGame(false);
-  } else if (playerTurn === 2 && inGame) {
+  } else if (playerTurn === 2) {
     setTimeout(() => botTurn(), 500);
   }
-}, [board, playerTurn, botTurn, inGame]);
+}, [board, playerTurn, inGame]);
 
 function resetGame() {
   setBoard(Array(3).fill("").map(()=>Array(3).fill("")))
@@ -133,7 +183,11 @@ function resetGame() {
   return (
     <>
       <div id="displayWinner" ref={displayWinner}></div>
-
+      <select name="difficulty" id="" defaultValue="hard" onChange={(e)=>setDifficulty(e.target.value)}>
+        <option value="easy">Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+      </select>
       <div className="board">
         {board.map((row, rowIndex) =>
           row.map((cell, colIndex) => (

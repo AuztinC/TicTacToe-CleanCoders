@@ -7,8 +7,8 @@ body{
 }
 
 .board {
-  width: 600px;
-  height: 600px;
+  width: 60vh;
+  height: 60vw;
   border: 1px solid black;
   display: flex;
   justify-content: center;
@@ -20,4 +20,7 @@ body{
   width: 33%;
   height: 33%;
   border: 1px solid black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
