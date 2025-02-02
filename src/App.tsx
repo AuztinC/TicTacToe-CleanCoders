@@ -3,11 +3,14 @@ import './App.css'
 
 function App() {
   const displayWinner = useRef<HTMLDivElement>(null);
+  const cellDivRef = useRef<HTMLDivElement[]>([]);
+  const difficultyRef = useRef<HTMLSelectElement | null>(null)
   // decide whos turn it is currently in the game.
   const [playerTurn, setPlayerTurn] = useState(1);
   // create a 2d array to map through and create our divs.
   const [board, setBoard] = useState(Array(3).fill("").map(() => Array(3).fill("")));
-  const [difficulty, setDifficulty] = useState("Hard")
+  // set default difficulty to hard
+  const [difficulty, setDifficulty] = useState(window.location.hash.slice(1,window.location.hash.length) || "hard")
   const [inGame, setInGame] = useState(false)
 
   // set our players markers.
@@ -15,7 +18,7 @@ function App() {
   const player = "X"
 
   // pass in rowIndex and colIndex of event space clicked.
-  function handleClick(row: number, col: number) {
+  function handleClick(e: any, row: number, col: number) {
     // check if current space is occupied or if the game has been won or tied.
     if (board[row][col] || checkWinner(board)) return;
 
@@ -25,15 +28,82 @@ function App() {
       newBoard[row][col] = player;
       return newBoard;
     });
-
+    // set className for text color
+    e.target.className = `${e.target.className} ${player}`
     setPlayerTurn(2)
 }  
 
-// useEffect(()=>{
-//   if(playerTurn == 2){
-//     botTurn();
-//   } else return 
-// }, [playerTurn])
+// Pick a random space from all empty available spaces.
+function easyMove() {
+  const emptySpaces = []
+  for(let i =0; i < 3; i++){
+    for(let j = 0; j < 3; j++){
+      if(!board[i][j]){
+        emptySpaces.push({row: i, col: j})
+      }
+    }
+  }
+  const ranIdx = Math.floor(Math.random() * emptySpaces.length)
+  return {row: emptySpaces[ranIdx].row, col: emptySpaces[ranIdx].col}
+}
+
+function hardMove() {
+  let bestScore = -Infinity;
+  let move = {row: -1, col: -1}
+    
+  // Finding the best move
+  for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 3; j++) {
+      if (!board[i][j]) {
+        const tempBoard = board.map((r) => [...r]);
+        tempBoard[i][j] = bot
+        const score = minimax(tempBoard, 0, false);
+        if (score > bestScore) {
+          bestScore = score;
+          move = { row: i, col: j };
+        }
+      }
+    }
+  }
+  return move
+}
+
+const botTurn = useCallback(() => {
+  let bestMove = { row: -1, col: -1 };
+
+  // "Easy" difficulty
+  // create a temp array of all possible spaces, pick one randomly
+  if(difficulty === "easy") {
+    // console.log("easy AI")
+    bestMove = easyMove()
+
+  } else if (difficulty === "medium") {
+    if(Math.random() < 0.5){
+      bestMove = easyMove()
+      console.log("medium-easy")
+    } else {
+      console.log("medium-hard")
+      bestMove = hardMove()
+    }
+  } else {
+
+    // "Hard" difficulty, always choose best move.
+    bestMove = hardMove()
+  
+  }
+  if (bestMove.row !== -1 && bestMove.col !== -1) {
+    setBoard((prevBoard) => {
+      const newBoard = prevBoard.map((r) => [...r]);
+      newBoard[bestMove.row][bestMove.col] = bot;
+      return newBoard;
+    });
+
+  }
+  setPlayerTurn(1);
+  setInGame(true);
+  
+
+}, [board, difficulty]);
 
 // create a set of winning patters to avoid checking redundent spaces
 const WINNING_PATTERNS = [
@@ -62,86 +132,6 @@ const checkWinner = (board: string[][]): string | null => {
   return board.flat().includes("") ? null : "tie"; 
 };
 
-function easyMove() {
-  const emptySpaces = []
-  for(let i =0; i < 3; i++){
-    for(let j = 0; j < 3; j++){
-      if(!board[i][j]){
-        emptySpaces.push({row: i, col: j})
-      }
-    }
-  }
-  const ranIdx = Math.floor(Math.random() * emptySpaces.length)
-  return {row: emptySpaces[ranIdx].row, col: emptySpaces[ranIdx].col}
-}
-
-const botTurn = useCallback(() => {
-  let bestMove = { row: -1, col: -1 };
-
-
-  // easy difficulty
-  // create a temp array of all possible spaces, pick one randomly
-  if(difficulty === "easy") {
-    // console.log("easy AI")
-    bestMove = easyMove()
-
-  } else if (difficulty === "medium") {
-    if(Math.round(Math.random() * 0.5) >= 0.5){
-      console.log("hard")
-    } else {
-      console.log("easy")
-    }
-    let bestScore = -Infinity;
-  
-    // Finding the best move
-    for (let i = 0; i < 3; i++) {
-      for (let j = 0; j < 3; j++) {
-        if (!board[i][j]) {
-          const tempBoard = board.map((r) => [...r]);
-          tempBoard[i][j] = bot
-          const score = minimax(tempBoard, 0, false);
-          if (score > bestScore) {
-            bestScore = score;
-            bestMove = { row: i, col: j };
-          }
-        }
-      }
-    }
-  } else {
-
-    // "Hard" difficulty, always choose best move.
-    let bestScore = -Infinity;
-  
-    // Finding the best move
-    for (let i = 0; i < 3; i++) {
-      for (let j = 0; j < 3; j++) {
-        if (!board[i][j]) {
-          const tempBoard = board.map((r) => [...r]);
-          tempBoard[i][j] = bot
-          const score = minimax(tempBoard, 0, false);
-          if (score > bestScore) {
-            bestScore = score;
-            bestMove = { row: i, col: j };
-          }
-        }
-      }
-    }
-  
-  }
-  if (bestMove.row !== -1 && bestMove.col !== -1) {
-    setBoard((prevBoard) => {
-      const newBoard = prevBoard.map((r) => [...r]);
-      newBoard[bestMove.row][bestMove.col] = bot;
-      return newBoard;
-    });
-
-  }
-  setPlayerTurn(1);
-  setInGame(true);
-  
-
-}, [board, difficulty]);
-
 const scores: Record<string, number> = { [player]: -1, [bot]: 1, tie: 0 };
 
 const minimax = (board: string[][], depth: number, isMax: boolean): number => {
@@ -163,6 +153,9 @@ const minimax = (board: string[][], depth: number, isMax: boolean): number => {
   return bestScore;
 };
 
+// ever turn, check for winner or tie to display
+// if no winner is found check if it is Bot's turn
+// give the bot a 500ms "think" time before acting
 useEffect(() => {
   const result = checkWinner(board);
   if (result && displayWinner.current) {
@@ -173,17 +166,30 @@ useEffect(() => {
   }
 }, [board, playerTurn, inGame]);
 
+useEffect(()=>{
+  window.location.hash = difficulty
+}, [difficulty])
+
+// recreate board array
+// create array from HTMLNodeList and reset classes for colors
+// set player turn and reset inGame + winner Div Content
 function resetGame() {
   setBoard(Array(3).fill("").map(()=>Array(3).fill("")))
+  const cellArr = Array.from(cellDivRef.current)
+  cellArr.forEach((div:HTMLDivElement)=>{
+    div.classList.remove("X")
+  })
   setPlayerTurn(1)
   setInGame(false)
   if (displayWinner.current) displayWinner.current.innerHTML = "";
 }
 
+// index used to add all 9 cells to cellDivRef
+let idx = 0
   return (
     <>
       <div id="displayWinner" ref={displayWinner}></div>
-      <select name="difficulty" id="" defaultValue="hard" onChange={(e)=>setDifficulty(e.target.value)}>
+      <select name="difficulty" ref={difficultyRef} value={difficulty} onChange={(e)=>setDifficulty(e.target.value)}>
         <option value="easy">Easy</option>
         <option value="medium">Medium</option>
         <option value="hard">Hard</option>
@@ -191,7 +197,7 @@ function resetGame() {
       <div className="board">
         {board.map((row, rowIndex) =>
           row.map((cell, colIndex) => (
-            <div key={`${rowIndex}-${colIndex}`} className="cell" onClick={() => handleClick(rowIndex, colIndex)}>
+            <div key={`${rowIndex}-${colIndex}`} ref={(el) => { if (el) cellDivRef.current[idx] = el; idx++; }} className="cell" onClick={(e) => handleClick(e, rowIndex, colIndex)}>
               {cell}
             </div>
           ))

@@ -1,4 +1,7 @@
 body{
+  text-align: center;
+  color: white;
+  background-color: black;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -7,9 +10,12 @@ body{
 }
 
 .board {
+  margin-top: 5px;
+  background-color: white;
   width: 60vh;
   height: 60vw;
-  border: 1px solid black;
+  border: 5px solid white;
+  border-radius: 10px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -23,4 +29,10 @@ body{
   display: flex;
   justify-content: center;
   align-items: center;
+  font-size: 3em;
+  color: limegreen;
+}
+
+.X{
+  color: red;
 }
