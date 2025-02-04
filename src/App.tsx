@@ -33,7 +33,7 @@ function App() {
     setPlayerTurn(2)
 }  
 
-// Pick a random space from all empty available spaces.
+// Pick and return a random space from all empty available spaces.
 function easyMove() {
   const emptySpaces = []
   for(let i =0; i < 3; i++){
@@ -47,11 +47,11 @@ function easyMove() {
   return {row: emptySpaces[ranIdx].row, col: emptySpaces[ranIdx].col}
 }
 
+// Find and return the best move
 function hardMove() {
   let bestScore = -Infinity;
   let move = {row: -1, col: -1}
     
-  // Finding the best move
   for (let i = 0; i < 3; i++) {
     for (let j = 0; j < 3; j++) {
       if (!board[i][j]) {
@@ -78,11 +78,10 @@ const botTurn = useCallback(() => {
     bestMove = easyMove()
 
   } else if (difficulty === "medium") {
+    // 50% chance to play a random space or the best move
     if(Math.random() < 0.5){
       bestMove = easyMove()
-      console.log("medium-easy")
     } else {
-      console.log("medium-hard")
       bestMove = hardMove()
     }
   } else {
@@ -91,6 +90,8 @@ const botTurn = useCallback(() => {
     bestMove = hardMove()
   
   }
+  // Once we find the best possible position for both Row & Col
+  // set our Board state with an immutible copy of previous state.
   if (bestMove.row !== -1 && bestMove.col !== -1) {
     setBoard((prevBoard) => {
       const newBoard = prevBoard.map((r) => [...r]);
@@ -107,20 +108,20 @@ const botTurn = useCallback(() => {
 
 // create a set of winning patters to avoid checking redundent spaces
 const WINNING_PATTERNS = [
-  [[0, 0], [0, 1], [0, 2]],
-  [[1, 0], [1, 1], [1, 2]],
-  [[2, 0], [2, 1], [2, 2]],
-  [[0, 0], [1, 0], [2, 0]],
-  [[0, 1], [1, 1], [2, 1]],
-  [[0, 2], [1, 2], [2, 2]],
-  [[0, 0], [1, 1], [2, 2]],
-  [[0, 2], [1, 1], [2, 0]],
+  [[0, 0], [0, 1], [0, 2]], //->
+  [[1, 0], [1, 1], [1, 2]], //->
+  [[2, 0], [2, 1], [2, 2]], //->
+  [[0, 0], [1, 0], [2, 0]], //v
+  [[0, 1], [1, 1], [2, 1]], // v
+  [[0, 2], [1, 2], [2, 2]], //  v
+  [[0, 0], [1, 1], [2, 2]], // \
+  [[0, 2], [1, 1], [2, 0]], // /
 ];
 
 const checkWinner = (board: string[][]): string | null => {
   // loop through each WINNING_PATTERN
   for (const pattern of WINNING_PATTERNS) {
-    // parse line of pattern to compare if both B & C are equal to A.
+    // parse line of pattern to compare if both B & C are equal to A, from the board we sent in.
     const [a, b, c] = pattern;
     if (board[a[0]][a[1]] && board[a[0]][a[1]] === board[b[0]][b[1]] && board[a[0]][a[1]] === board[c[0]][c[1]]) {
       return board[a[0]][a[1]];
@@ -129,15 +130,27 @@ const checkWinner = (board: string[][]): string | null => {
   // concat our 2d array to avoid redundent loop
   // check for empty spaces, if we find any return null(continue game)
   // if all spaces are occupied 
-  return board.flat().includes("") ? null : "tie"; 
+  for (let row of board) {
+    for (let cell of row) {
+      if (cell === "") return null;
+    }
+  }
+  return "tie";
+  // return board.flat().includes("") ? null : "tie"; 
 };
 
+// scores based on the outcome of checkWinner. "X", "O", "tie"
+// using Record to extend string types as keys from [player], [bot], "tie" assigning their value as numbers
 const scores: Record<string, number> = { [player]: -1, [bot]: 1, tie: 0 };
-
+ 
 const minimax = (board: string[][], depth: number, isMax: boolean): number => {
+  // if checkWinner returns "X", "O", or "tie" return that result.
+  // else if result === null, continue minimax
   const result = checkWinner(board);
   if (result) return scores[result];
 
+  // using our maximizing player(isMax) variable properly 
+  // reduced redundent code by checking its state and flipping it accordingly
   let bestScore = isMax ? -Infinity : Infinity;
 
   for (let i = 0; i < 3; i++) {
