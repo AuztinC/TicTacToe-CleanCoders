@@ -18,7 +18,8 @@ function App() {
   const player = "X"
 
   // pass in rowIndex and colIndex of event space clicked.
-  function handleClick(e: any, row: number, col: number) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function handleClick(e:  React.MouseEvent<HTMLDivElement, MouseEvent>, row: number, col: number) {
     // check if current space is occupied or if the game has been won or tied.
     if (board[row][col] || checkWinner(board)) return;
 
@@ -29,7 +30,10 @@ function App() {
       return newBoard;
     });
     // set className for text color
-    e.target.className = `${e.target.className} ${player}`
+    console.log(e)
+    if(e.target instanceof HTMLDivElement){
+      e.target.className = `${e.target.className} ${player}`
+    }
     setPlayerTurn(2)
 }  
 
@@ -130,8 +134,8 @@ const checkWinner = (board: string[][]): string | null => {
   // concat our 2d array to avoid redundent loop
   // check for empty spaces, if we find any return null(continue game)
   // if all spaces are occupied 
-  for (let row of board) {
-    for (let cell of row) {
+  for (const row of board) {
+    for (const cell of row) {
       if (cell === "") return null;
     }
   }

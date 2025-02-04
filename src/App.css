@@ -11,6 +11,7 @@ body{
 }
 
 .board {
+  font-family: "Bagel Fat One", serif;
   margin-top: 5px;
   background-color: white;
   width: 60vh;
@@ -24,14 +25,15 @@ body{
 }
 
 .cell {
-  flex: 32.9%;
-  height: 33%;
+  box-sizing: border-box;
+  flex: calc(100% / 3);
+  height: calc(100% / 3);
   border: 1px black;
   border-style:dotted;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 3em;
+  font-size: 4em;
   color: limegreen;
 }
 
