@@ -1,3 +1,5 @@
+// DEPLOYED SITE : https://austincripe-cleancoders.netlify.app/
+
 import { useState, useEffect, useCallback, useRef } from 'react'
 import './App.css'
 
@@ -56,10 +58,13 @@ function hardMove() {
   let bestScore = -Infinity;
   let move = {row: -1, col: -1}
     
+  // iterate over board and send in a temp board
+  // to minimax with bot marker at each position ultimately 
+  // returning the best position based on result of minimax 
   for (let i = 0; i < 3; i++) {
     for (let j = 0; j < 3; j++) {
       if (!board[i][j]) {
-        const tempBoard = board.map((r) => [...r]);
+        const tempBoard = board.map((row) => [...row]);
         tempBoard[i][j] = bot
         const score = minimax(tempBoard, 0, false);
         if (score > bestScore) {
@@ -76,7 +81,6 @@ const botTurn = useCallback(() => {
   let bestMove = { row: -1, col: -1 };
 
   // "Easy" difficulty
-  // create a temp array of all possible spaces, pick one randomly
   if(difficulty === "easy") {
     // console.log("easy AI")
     bestMove = easyMove()
@@ -89,10 +93,8 @@ const botTurn = useCallback(() => {
       bestMove = hardMove()
     }
   } else {
-
     // "Hard" difficulty, always choose best move.
     bestMove = hardMove()
-  
   }
   // Once we find the best possible position for both Row & Col
   // set our Board state with an immutible copy of previous state.
@@ -131,9 +133,8 @@ const checkWinner = (board: string[][]): string | null => {
       return board[a[0]][a[1]];
     }
   }
-  // concat our 2d array to avoid redundent loop
   // check for empty spaces, if we find any return null(continue game)
-  // if all spaces are occupied 
+  // if all spaces are occupied return tie
   for (const row of board) {
     for (const cell of row) {
       if (cell === "") return null;
@@ -189,7 +190,7 @@ useEffect(()=>{
 
 // recreate board array
 // create array from HTMLNodeList and reset classes for colors
-// set player turn and reset inGame + winner Div Content
+// set player turn and reset inGame + winner Div Content to empty string
 function resetGame() {
   setBoard(Array(3).fill("").map(()=>Array(3).fill("")))
   const cellArr = Array.from(cellDivRef.current)
