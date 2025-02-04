@@ -14,8 +14,8 @@ body{
   font-family: "Bagel Fat One", serif;
   margin-top: 5px;
   background-color: white;
-  width: 60vh;
-  height: 40vw;
+  width: 60vw;
+  height: 40vh;
   border: 5px solid white;
   border-radius: 10px;
   display: flex;
