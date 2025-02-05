@@ -32,7 +32,7 @@ function App() {
       return newBoard;
     });
     // set className for text color
-    console.log(e)
+    // console.log(e)
     if(e.target instanceof HTMLDivElement){
       e.target.className = `${e.target.className} ${player}`
     }
