@@ -23,20 +23,23 @@ function App() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function handleClick(e:  React.MouseEvent<HTMLDivElement, MouseEvent>, row: number, col: number) {
     // check if current space is occupied or if the game has been won or tied.
-    if (board[row][col] || checkWinner(board)) return;
+    if(playerTurn === 1) {
+      if (board[row][col] || checkWinner(board)) return;
+  
+      // create a copy of board for immutablilty; set player icon in space
+      setBoard((prevBoard) => {
+        const newBoard = prevBoard.map((r) => [...r]);
+        newBoard[row][col] = player;
+        return newBoard;
+      });
+      // set className for text color
+      // console.log(e)
+      if(e.target instanceof HTMLDivElement){
+        e.target.className = `${e.target.className} ${player}`
+      }
+      setPlayerTurn(2)
 
-    // create a copy of board for immutablilty; set player icon in space
-    setBoard((prevBoard) => {
-      const newBoard = prevBoard.map((r) => [...r]);
-      newBoard[row][col] = player;
-      return newBoard;
-    });
-    // set className for text color
-    // console.log(e)
-    if(e.target instanceof HTMLDivElement){
-      e.target.className = `${e.target.className} ${player}`
     }
-    setPlayerTurn(2)
 }  
 
 // Pick and return a random space from all empty available spaces.
